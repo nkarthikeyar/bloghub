@@ -4,6 +4,7 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const bcrypt = require('bcryptjs');
 const path = require('path');
+const crypto = require('crypto');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -88,6 +89,10 @@ const blogSchema = new mongoose.Schema({
     sparse: true,
     index: true
   },
+  signature: {
+    type: String,
+    index: true
+  },
   author: {
     name: String,
     email: String
@@ -112,6 +117,19 @@ const blogSchema = new mongoose.Schema({
 });
 
 blogSchema.index({ requestId: 1 }, { unique: true, sparse: true });
+blogSchema.index({ signature: 1, createdAt: -1 });
+
+function computeBlogSignature({ title, content, excerpt, category, tags, authorEmail }) {
+  const normalized = {
+    title: (title || '').trim(),
+    content: (content || '').trim(),
+    excerpt: (excerpt || '').trim(),
+    category: (category || '').trim(),
+    tags: Array.isArray(tags) ? tags.map(t => String(t).trim()).filter(Boolean).sort() : [],
+    authorEmail: (authorEmail || '').trim().toLowerCase()
+  };
+  return crypto.createHash('sha256').update(JSON.stringify(normalized)).digest('hex');
+}
 
 const User = mongoose.model('User', userSchema);
 const Blog = mongoose.model('Blog', blogSchema);
@@ -234,6 +252,26 @@ app.post('/api/blogs', async (req, res) => {
       });
     }
 
+    // Content dedupe window (handles cases where multiple requests are sent with DIFFERENT requestIds)
+    const signature = computeBlogSignature({
+      title,
+      content,
+      excerpt,
+      category,
+      tags,
+      authorEmail: author?.email
+    });
+
+    const dedupeSince = new Date(Date.now() - 10_000);
+    const recentDuplicate = await Blog.findOne({ signature, createdAt: { $gte: dedupeSince } });
+    if (recentDuplicate) {
+      return res.status(200).json({
+        success: true,
+        message: 'Duplicate submission ignored',
+        blog: recentDuplicate
+      });
+    }
+
     // Idempotency: if the client sends a requestId, duplicate POSTs will map to the same document.
     if (requestId) {
       const blog = await Blog.findOneAndUpdate(
@@ -241,6 +279,7 @@ app.post('/api/blogs', async (req, res) => {
         {
           $setOnInsert: {
             requestId,
+            signature,
             title,
             content,
             excerpt,
@@ -282,6 +321,7 @@ app.post('/api/blogs', async (req, res) => {
       content,
       excerpt,
       category,
+      signature,
       author,
       tags: tags || []
     });
@@ -461,10 +501,13 @@ app.use(express.static(__dirname, {
   setHeaders: (res, filePath) => {
     if (filePath.endsWith('.css')) {
       res.setHeader('Content-Type', 'text/css; charset=utf-8');
+      res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
     } else if (filePath.endsWith('.js')) {
       res.setHeader('Content-Type', 'application/javascript; charset=utf-8');
+      res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
     } else if (filePath.endsWith('.html')) {
       res.setHeader('Content-Type', 'text/html; charset=utf-8');
+      res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
     }
   }
 }));

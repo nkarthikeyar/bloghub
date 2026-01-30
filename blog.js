@@ -21,6 +21,35 @@ window.addEventListener('DOMContentLoaded', () => {
   attachAllListeners();
 });
 
+function showToast(message) {
+  let toast = document.getElementById('toast');
+  if (!toast) {
+    toast = document.createElement('div');
+    toast.id = 'toast';
+    toast.style.position = 'fixed';
+    toast.style.right = '16px';
+    toast.style.bottom = '16px';
+    toast.style.zIndex = '9999';
+    toast.style.padding = '12px 14px';
+    toast.style.borderRadius = '12px';
+    toast.style.background = 'rgba(15, 23, 42, 0.92)';
+    toast.style.color = '#fff';
+    toast.style.boxShadow = '0 10px 30px rgba(0,0,0,0.25)';
+    toast.style.fontSize = '14px';
+    toast.style.maxWidth = '320px';
+    toast.style.backdropFilter = 'blur(8px)';
+    document.body.appendChild(toast);
+  }
+
+  toast.textContent = message;
+  toast.style.opacity = '1';
+
+  clearTimeout(window.__toastTimer);
+  window.__toastTimer = setTimeout(() => {
+    toast.style.opacity = '0';
+  }, 2500);
+}
+
 // ============ USER MANAGEMENT ============
 function loadUserInfo() {
   const userName = localStorage.getItem('userName');
@@ -189,7 +218,7 @@ async function handleFormSubmit(e) {
     }
 
     console.log('✅ Blog published successfully!');
-    alert('✅ Blog published successfully!');
+    showToast('✅ Blog published successfully!');
 
     // Reset form
     document.getElementById('createBlogForm').reset();
