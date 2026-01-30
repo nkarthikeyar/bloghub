@@ -160,7 +160,8 @@ document.getElementById("signupForm").addEventListener("submit", function (e) {
     submitBtn.textContent = "Creating Account...";
     submitBtn.disabled = true;
 
-    fetch("http://localhost:3000/api/signup", {
+    const apiUrl = window.location.hostname === 'localhost' ? 'http://localhost:3000' : 'https://bloghub-1-bzwp.onrender.com';
+    fetch(apiUrl + "/api/signup", {
       method: "POST",
       headers: {"Content-Type": "application/json"},
       body: JSON.stringify(userData),
@@ -215,7 +216,8 @@ document.getElementById("loginForm").addEventListener("submit", function (e) {
     submitBtn.textContent = "Signing In...";
     submitBtn.disabled = true;
 
-    fetch("http://localhost:3000/api/login", {
+    const apiUrl = window.location.hostname === 'localhost' ? 'http://localhost:3000' : 'https://bloghub-1-bzwp.onrender.com';
+    fetch(apiUrl + "/api/login", {
       method: "POST",
       headers: {"Content-Type": "application/json"},
       body: JSON.stringify(loginData),
