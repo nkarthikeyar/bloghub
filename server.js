@@ -379,7 +379,7 @@ app.get('/signuppage.html', (req, res) => {
 });
 
 // Serve static files LAST - with correct MIME types
-app.use(express.static(path.join(__dirname, '.'), {
+app.use(express.static(__dirname, {
   setHeaders: (res, filePath) => {
     if (filePath.endsWith('.css')) {
       res.setHeader('Content-Type', 'text/css; charset=utf-8');
