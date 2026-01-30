@@ -185,6 +185,15 @@ async function handleFormSubmit(e) {
     const userEmail = localStorage.getItem('userEmail') || 'unknown@example.com';
     const userName = localStorage.getItem('userName') || 'Anonymous';
 
+    if (!userName || userName === 'Anonymous' || !userEmail || userEmail === 'unknown@example.com') {
+      isSubmitting = false;
+      showToast('❌ Login expired. Please login again.');
+      setTimeout(() => {
+        window.location.href = '/signuppage.html';
+      }, 800);
+      return false;
+    }
+
     const requestId = generateRequestId();
     console.log('🧾 RequestId:', requestId);
 
@@ -217,8 +226,8 @@ async function handleFormSubmit(e) {
       throw new Error(data.message || 'Failed to publish blog');
     }
 
-    console.log('✅ Blog published successfully!');
-    showToast('✅ Blog published successfully!');
+    console.log('✅ Server response:', data);
+    showToast(data.message || '✅ Blog published successfully!');
 
     // Reset form
     document.getElementById('createBlogForm').reset();

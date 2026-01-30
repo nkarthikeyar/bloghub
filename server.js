@@ -252,6 +252,13 @@ app.post('/api/blogs', async (req, res) => {
       });
     }
 
+    if (!author || !author.email) {
+      return res.status(400).json({
+        success: false,
+        message: 'Missing user info (author.email). Please login again.'
+      });
+    }
+
     // Content dedupe window (handles cases where multiple requests are sent with DIFFERENT requestIds)
     const signature = computeBlogSignature({
       title,
@@ -262,12 +269,14 @@ app.post('/api/blogs', async (req, res) => {
       authorEmail: author?.email
     });
 
-    const dedupeSince = new Date(Date.now() - 10_000);
+    // Only dedupe near-simultaneous double submits (e.g. double click / retries)
+    const dedupeSince = new Date(Date.now() - 2000);
     const recentDuplicate = await Blog.findOne({ signature, createdAt: { $gte: dedupeSince } });
     if (recentDuplicate) {
       return res.status(200).json({
         success: true,
-        message: 'Duplicate submission ignored',
+        deduped: true,
+        message: 'Duplicate submission ignored (already saved)',
         blog: recentDuplicate
       });
     }
@@ -293,6 +302,7 @@ app.post('/api/blogs', async (req, res) => {
 
       return res.status(201).json({
         success: true,
+        deduped: false,
         message: 'Blog post created successfully!',
         blog
       });
@@ -311,7 +321,8 @@ app.post('/api/blogs', async (req, res) => {
     if (existing) {
       return res.status(200).json({
         success: true,
-        message: 'Duplicate submission ignored',
+        deduped: true,
+        message: 'Duplicate submission ignored (already saved)',
         blog: existing
       });
     }
@@ -330,6 +341,7 @@ app.post('/api/blogs', async (req, res) => {
 
     return res.status(201).json({
       success: true,
+      deduped: false,
       message: 'Blog post created successfully!',
       blog: newBlog
     });
@@ -342,7 +354,8 @@ app.post('/api/blogs', async (req, res) => {
         if (existing) {
           return res.status(200).json({
             success: true,
-            message: 'Duplicate submission ignored',
+            deduped: true,
+            message: 'Duplicate submission ignored (already saved)',
             blog: existing
           });
         }
