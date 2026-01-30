@@ -362,5 +362,5 @@ app.post('/api/blogs/:id/like', async (req, res) => {
 // Start server
 app.listen(PORT, () => {
   console.log(`🚀 Server is running on http://localhost:${PORT}`);
-  console.log(`📄 Visit http://localhost:${PORT}/singnuppage.html`);
+  console.log(`📄 Visit http://localhost:${PORT}/signuppage.html`);
 });
