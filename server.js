@@ -6,7 +6,7 @@ const bcrypt = require('bcryptjs');
 const path = require('path');
 
 const app = express();
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 
 // Middleware
 app.use(cors());
@@ -14,12 +14,7 @@ app.use(express.json());
 app.use(express.static(__dirname));
 
 // MongoDB Connection
-// Option 1: Local MongoDB (requires MongoDB installed)
-// const MONGODB_URI = 'mongodb://localhost:27017/bloghub';
-
-// Option 2: MongoDB Atlas (Cloud - Free, No installation needed)
-// Replace with your connection string from MongoDB Atlas
-const MONGODB_URI = 'mongodb://localhost:27017/bloghub';
+const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/bloghub';
 
 // IMPORTANT: If you get connection error, use MongoDB Atlas instead:
 // 1. Go to https://www.mongodb.com/cloud/atlas/register
