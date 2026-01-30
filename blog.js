@@ -177,13 +177,8 @@ function updateStats(content) {
 
 // ============ FORM VALIDATION ============
 function setupFormValidation() {
-  const form = document.getElementById('createBlogForm');
-  if (form) {
-    form.addEventListener('submit', (e) => {
-      e.preventDefault();
-      validateForm();
-    });
-  }
+  // This function is no longer needed since validation is handled in handleFormSubmit
+  // Keeping it for backward compatibility but not adding duplicate listeners
 }
 
 function validateForm() {
