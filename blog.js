@@ -5,9 +5,13 @@ const API_URL = window.location.hostname === 'localhost'
 
 // ============ SUBMISSION STATE ============
 let isSubmitting = false;
+let isInitialized = false; // Prevent multiple initializations
 
 // ============ PAGE INITIALIZATION ============
 document.addEventListener('DOMContentLoaded', () => {
+  if (isInitialized) return; // Prevent double initialization
+  isInitialized = true;
+  
   loadUserInfo();
   initializeEventListeners();
   setupFormValidation();
@@ -39,68 +43,87 @@ function initializeEventListeners() {
   const tagsInput = document.getElementById('blog-tags');
   const imageInput = document.getElementById('blog-image');
 
-  // Form submission
+  // Form submission - remove any existing listener first
   if (form) {
-    form.addEventListener('submit', (e) => {
-      e.preventDefault();
-      
-      // Prevent double submission
-      if (isSubmitting) {
-        alert('⏳ Blog is being published... Please wait!');
-        return;
-      }
-      
-      if (validateForm()) {
-        publishBlog();
-      }
-    });
-  }
+    // Clone and replace form to remove all event listeners
+    const newForm = form.cloneNode(true);
+    form.parentNode.replaceChild(newForm, form);
+    
+    // Add fresh event listener to the new form
+    newForm.addEventListener('submit', handleFormSubmit);
+    
+    // Re-get references to inputs in the cloned form
+    const newTitleInput = newForm.querySelector('#blog-title');
+    const newExcerptInput = newForm.querySelector('#blog-excerpt');
+    const newContentInput = newForm.querySelector('#blog-content');
+    const newCategoryInput = newForm.querySelector('#blog-category');
+    const newTagsInput = newForm.querySelector('#blog-tags');
+    const newImageInput = newForm.querySelector('#blog-image');
 
-  // Title input - live preview + char counter
-  if (titleInput) {
-    titleInput.addEventListener('input', (e) => {
-      updateCharCounter('titleCount', e.target.value, 150);
-      updatePreview('title', e.target.value);
-    });
-  }
+    // Title input - live preview + char counter
+    if (newTitleInput) {
+      newTitleInput.addEventListener('input', (e) => {
+        updateCharCounter('titleCount', e.target.value, 150);
+        updatePreview('title', e.target.value);
+      });
+    }
 
-  // Excerpt input - live preview + char counter
-  if (excerptInput) {
-    excerptInput.addEventListener('input', (e) => {
-      updateCharCounter('excerptCount', e.target.value, 250);
-      updatePreview('excerpt', e.target.value);
-    });
-  }
+    // Excerpt input - live preview + char counter
+    if (newExcerptInput) {
+      newExcerptInput.addEventListener('input', (e) => {
+        updateCharCounter('excerptCount', e.target.value, 250);
+        updatePreview('excerpt', e.target.value);
+      });
+    }
 
-  // Content input - live preview + stats + char counter
-  if (contentInput) {
-    contentInput.addEventListener('input', (e) => {
-      updateCharCounter('contentCount', e.target.value, 5000);
-      updatePreview('content', e.target.value);
-      updateStats(e.target.value);
-    });
-  }
+    // Content input - live preview + stats + char counter
+    if (newContentInput) {
+      newContentInput.addEventListener('input', (e) => {
+        updateCharCounter('contentCount', e.target.value, 5000);
+        updatePreview('content', e.target.value);
+        updateStats(e.target.value);
+      });
+    }
 
-  // Category select - live preview
-  if (categoryInput) {
-    categoryInput.addEventListener('change', (e) => {
-      updatePreview('category', e.target.value);
-    });
-  }
+    // Category select - live preview
+    if (newCategoryInput) {
+      newCategoryInput.addEventListener('change', (e) => {
+        updatePreview('category', e.target.value);
+      });
+    }
 
-  // Tags input - live preview
-  if (tagsInput) {
-    tagsInput.addEventListener('input', (e) => {
-      updatePreview('tags', e.target.value);
-    });
-  }
+    // Tags input - live preview
+    if (newTagsInput) {
+      newTagsInput.addEventListener('input', (e) => {
+        updatePreview('tags', e.target.value);
+      });
+    }
 
-  // Image input - live preview
-  if (imageInput) {
-    imageInput.addEventListener('input', (e) => {
-      updatePreview('image', e.target.value);
-    });
+    // Image input - live preview
+    if (newImageInput) {
+      newImageInput.addEventListener('input', (e) => {
+        updatePreview('image', e.target.value);
+      });
+    }
   }
+}
+
+// ============ FORM SUBMIT HANDLER ============
+function handleFormSubmit(e) {
+  e.preventDefault();
+  e.stopImmediatePropagation(); // Stop any other listeners
+  
+  // Prevent double submission
+  if (isSubmitting) {
+    alert('⏳ Blog is being published... Please wait!');
+    return false;
+  }
+  
+  if (validateForm()) {
+    publishBlog();
+  }
+  
+  return false;
 }
 
 // ============ CHARACTER COUNTER ============
