@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sign Up / Login - Modern Auth Page</title>
+  <link rel="stylesheet" href="3.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+
+  <div class="auth-container">
+    <div class="auth-wrapper">
+      <div class="auth-form-wrapper">
+        
+        <!-- Form Header -->
+        <div class="form-header">
+          <h2 id="form-title">Welcome Back</h2>
+          <p id="form-subtitle">Sign in to continue to your blog</p>
+        </div>
+
+        <!-- Sign Up Form -->
+        <form id="signupForm" class="auth-form" style="display: none;">
+          
+          <!-- Full Name -->
+          <div class="form-group">
+            <label for="name">Full Name</label>
+            <input 
+              type="text" 
+              id="name" 
+              name="name"
+              placeholder="Enter your full name" 
+              autocomplete="name"
+            >
+            <span class="error-message"></span>
+          </div>
+
+          <!-- Email -->
+          <div class="form-group">
+            <label for="email">Email Address</label>
+            <input 
+              type="email" 
+              id="email" 
+              name="email"
+              placeholder="Enter your email" 
+              autocomplete="email"
+            >
+            <span class="error-message"></span>
+          </div>
+
+          <!-- Password with Toggle -->
+          <div class="form-group">
+            <label for="password">Password</label>
+            <div class="password-wrapper">
+              <input 
+                type="password" 
+                id="password" 
+                name="password"
+                placeholder="Create a strong password" 
+                autocomplete="new-password"
+              >
+              <i class="fas fa-eye toggle-password"></i>
+            </div>
+            <div class="password-strength">
+              <div class="strength-bar"></div>
+            </div>
+            <span class="error-message"></span>
+          </div>
+
+          <!-- Confirm Password -->
+          <div class="form-group">
+            <label for="confirm-password">Confirm Password</label>
+            <div class="password-wrapper">
+              <input 
+                type="password" 
+                id="confirm-password" 
+                name="confirm-password"
+                placeholder="Re-enter your password" 
+                autocomplete="new-password"
+              >
+              <i class="fas fa-eye toggle-password"></i>
+            </div>
+            <span class="error-message"></span>
+          </div>
+
+          <!-- Terms & Conditions -->
+          <div class="checkbox-group">
+            <input type="checkbox" id="agree-terms" name="agree-terms">
+            <label for="agree-terms">
+              I agree to the <a href="#" target="_blank">Terms & Conditions</a> and 
+              <a href="#" target="_blank">Privacy Policy</a>
+            </label>
+          </div>
+
+          <!-- Submit Button -->
+          <button type="submit" class="auth-btn">Create Account</button>
+          
+          <!-- Toggle to Login -->
+          <div class="auth-toggle" style="margin-top: 20px; text-align: center;">
+            <p>Already have an account? <a href="#" class="toggle-link" onclick="showLoginForm(); return false;">Sign In</a></p>
+          </div>
+        </form>
+
+        <!-- Login Form -->
+        <form id="loginForm" class="auth-form active">
+          
+          <!-- Email -->
+          <div class="form-group">
+            <label for="login-email">Email Address</label>
+            <input 
+              type="email" 
+              id="login-email" 
+              name="login-email"
+              placeholder="Enter your email" 
+              autocomplete="email"
+            >
+            <span class="error-message"></span>
+          </div>
+
+          <!-- Password -->
+          <div class="form-group">
+            <label for="login-password">Password</label>
+            <div class="password-wrapper">
+              <input 
+                type="password" 
+                id="login-password" 
+                name="login-password"
+                placeholder="Enter your password" 
+                autocomplete="current-password"
+              >
+              <i class="fas fa-eye toggle-password"></i>
+            </div>
+            <span class="error-message"></span>
+          </div>
+
+          <!-- Remember Me & Forgot Password -->
+          <div class="remember-forgot">
+            <label>
+              <input type="checkbox" id="remember-me" name="remember-me">
+              Remember me
+            </label>
+            <a href="#" id="forgot-password">Forgot password?</a>
+          </div>
+
+          <!-- Submit Button -->
+          <button type="submit" class="auth-btn">Sign In</button>
+          
+          <!-- Toggle to Signup -->
+          <div class="auth-toggle" style="margin-top: 20px; text-align: center;">
+            <p>Don't have an account? <a href="#" class="toggle-link" onclick="showSignupForm(); return false;">Create Account</a></p>
+          </div>
+        </form>
+
+        <!-- Create Blog Form (appears after login) -->
+
+        <form id="createBlogForm" class="auth-form" style="display: none;">
+          
+          <!-- Blog Title -->
+          <div class="form-group">
+            <label for="blog-title">Blog Title</label>
+            <input 
+              type="text" 
+              id="blog-title" 
+              placeholder="Enter an interesting blog title" 
+              required
+            >
+            <span class="error-message"></span>
+          </div>
+
+          <!-- Blog Excerpt -->
+          <div class="form-group">
+            <label for="blog-excerpt">Short Description</label>
+            <textarea 
+              id="blog-excerpt" 
+              placeholder="Brief summary of your blog (one or two sentences)" 
+              rows="2" 
+              required
+            ></textarea>
+            <span class="error-message"></span>
+          </div>
+
+          <!-- Blog Content -->
+          <div class="form-group">
+            <label for="blog-content">Blog Content</label>
+            <textarea 
+              id="blog-content" 
+              placeholder="Write your full blog post here..." 
+              rows="6" 
+              required
+            ></textarea>
+            <span class="error-message"></span>
+          </div>
+
+          <!-- Blog Tags -->
+          <div class="form-group">
+            <label for="blog-tags">Tags (comma separated)</label>
+            <input 
+              type="text" 
+              id="blog-tags" 
+              placeholder="e.g., technology, coding, tutorial, web-development"
+            >
+            <span class="error-message"></span>
+          </div>
+
+          <!-- Submit Buttons -->
+          <button type="submit" class="auth-btn">Publish Blog</button>
+          <button type="button" class="logout-btn" onclick="logoutUser()">Logout</button>
+        </form>
+
+      </div>
+    </div>
+  </div>
+
+  <script src="2.js"></script>
+</body>
+</html>
