@@ -70,6 +70,10 @@ const blogSchema = new mongoose.Schema({
     required: true,
     trim: true
   },
+  category: {
+    type: String,
+    trim: true
+  },
   content: {
     type: String,
     required: true
@@ -77,6 +81,12 @@ const blogSchema = new mongoose.Schema({
   excerpt: {
     type: String,
     required: true
+  },
+  requestId: {
+    type: String,
+    unique: true,
+    sparse: true,
+    index: true
   },
   author: {
     name: String,
@@ -100,6 +110,8 @@ const blogSchema = new mongoose.Schema({
     default: Date.now
   }
 });
+
+blogSchema.index({ requestId: 1 }, { unique: true, sparse: true });
 
 const User = mongoose.model('User', userSchema);
 const Blog = mongoose.model('Blog', blogSchema);
@@ -212,24 +224,90 @@ app.get('/api/users', async (req, res) => {
 // Create Blog Post
 app.post('/api/blogs', async (req, res) => {
   try {
-    const { title, content, excerpt, author, tags } = req.body;
+    const requestId = req.get('x-request-id') || req.body.requestId;
+    const { title, content, excerpt, author, tags, category } = req.body;
+
+    if (!title || !content || !excerpt) {
+      return res.status(400).json({
+        success: false,
+        message: 'Missing required fields'
+      });
+    }
+
+    // Idempotency: if the client sends a requestId, duplicate POSTs will map to the same document.
+    if (requestId) {
+      const blog = await Blog.findOneAndUpdate(
+        { requestId },
+        {
+          $setOnInsert: {
+            requestId,
+            title,
+            content,
+            excerpt,
+            category,
+            author,
+            tags: tags || []
+          }
+        },
+        { upsert: true, new: true, setDefaultsOnInsert: true }
+      );
+
+      return res.status(201).json({
+        success: true,
+        message: 'Blog post created successfully!',
+        blog
+      });
+    }
+
+    // Fallback dedupe (no requestId): avoid creating two identical posts within 2 seconds.
+    const since = new Date(Date.now() - 2000);
+    const existing = await Blog.findOne({
+      title,
+      content,
+      excerpt,
+      'author.email': author?.email,
+      createdAt: { $gte: since }
+    });
+
+    if (existing) {
+      return res.status(200).json({
+        success: true,
+        message: 'Duplicate submission ignored',
+        blog: existing
+      });
+    }
 
     const newBlog = new Blog({
       title,
       content,
       excerpt,
+      category,
       author,
       tags: tags || []
     });
 
     await newBlog.save();
 
-    res.status(201).json({
+    return res.status(201).json({
       success: true,
       message: 'Blog post created successfully!',
       blog: newBlog
     });
   } catch (error) {
+    // If a duplicate requestId is inserted concurrently, return the existing blog.
+    if (error && error.code === 11000) {
+      const requestId = req.get('x-request-id') || req.body.requestId;
+      if (requestId) {
+        const existing = await Blog.findOne({ requestId });
+        if (existing) {
+          return res.status(200).json({
+            success: true,
+            message: 'Duplicate submission ignored',
+            blog: existing
+          });
+        }
+      }
+    }
     console.error('Create blog error:', error);
     res.status(500).json({ 
       success: false, 

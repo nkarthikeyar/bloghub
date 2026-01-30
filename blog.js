@@ -7,6 +7,13 @@ const API_URL = window.location.hostname === 'localhost'
 let isSubmitting = false;
 let listenersAttached = false;
 
+function generateRequestId() {
+  if (window.crypto && typeof window.crypto.randomUUID === 'function') {
+    return window.crypto.randomUUID();
+  }
+  return `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+}
+
 // ============ PAGE INITIALIZATION ============
 window.addEventListener('DOMContentLoaded', () => {
   console.log('🚀 Blog page loaded');
@@ -149,15 +156,20 @@ async function handleFormSubmit(e) {
     const userEmail = localStorage.getItem('userEmail') || 'unknown@example.com';
     const userName = localStorage.getItem('userName') || 'Anonymous';
 
+    const requestId = generateRequestId();
+    console.log('🧾 RequestId:', requestId);
+
     console.log('📤 Sending blog to server:', { title, category, tags });
 
     // SINGLE fetch request only
     const response = await fetch(`${API_URL}/api/blogs`, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'X-Request-Id': requestId
       },
       body: JSON.stringify({
+        requestId,
         title,
         excerpt,
         content,
