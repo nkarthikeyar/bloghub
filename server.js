@@ -8,19 +8,6 @@ const path = require('path');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Serve static files with correct MIME type headers
-app.use(express.static(path.join(__dirname, '.'), {
-  setHeaders: (res, filePath) => {
-    if (filePath.endsWith('.css')) {
-      res.setHeader('Content-Type', 'text/css; charset=utf-8');
-    } else if (filePath.endsWith('.js')) {
-      res.setHeader('Content-Type', 'application/javascript; charset=utf-8');
-    } else if (filePath.endsWith('.html')) {
-      res.setHeader('Content-Type', 'text/html; charset=utf-8');
-    }
-  }
-}));
-
 // Middleware - CORS enabled for all origins
 app.use(cors({
   origin: '*',
@@ -28,6 +15,9 @@ app.use(cors({
   credentials: true
 }));
 app.use(express.json());
+
+// IMPORTANT: Serve static files LAST, after all API routes
+// This prevents static files from being caught by other middleware
 
 // MongoDB Connection
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb+srv://karthikeya:BlogHub2026@cluster0.qb4ufyz.mongodb.net/bloghub?retryWrites=true&w=majority';
@@ -387,6 +377,19 @@ app.get('/blog.html', (req, res) => {
 app.get('/signuppage.html', (req, res) => {
   res.sendFile(path.join(__dirname, 'signuppage.html'));
 });
+
+// Serve static files LAST - with correct MIME types
+app.use(express.static(path.join(__dirname, '.'), {
+  setHeaders: (res, filePath) => {
+    if (filePath.endsWith('.css')) {
+      res.setHeader('Content-Type', 'text/css; charset=utf-8');
+    } else if (filePath.endsWith('.js')) {
+      res.setHeader('Content-Type', 'application/javascript; charset=utf-8');
+    } else if (filePath.endsWith('.html')) {
+      res.setHeader('Content-Type', 'text/html; charset=utf-8');
+    }
+  }
+}));
 
 // Start server
 app.listen(PORT, () => {
