@@ -8,10 +8,35 @@ const path = require('path');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Serve static files FIRST (before other middleware)
+// Set proper MIME types for static files
+const mimeTypes = {
+  '.css': 'text/css',
+  '.js': 'application/javascript',
+  '.html': 'text/html',
+  '.json': 'application/json',
+  '.png': 'image/png',
+  '.jpg': 'image/jpeg',
+  '.gif': 'image/gif',
+  '.svg': 'image/svg+xml',
+  '.ico': 'image/x-icon',
+  '.woff': 'font/woff',
+  '.woff2': 'font/woff2',
+  '.ttf': 'font/ttf',
+  '.eot': 'application/vnd.ms-fontobject'
+};
+
+// Serve static files with correct MIME types
+app.use((req, res, next) => {
+  const ext = path.extname(req.url);
+  if (mimeTypes[ext]) {
+    res.type(mimeTypes[ext]);
+  }
+  next();
+});
+
 app.use(express.static(path.join(__dirname, '.')));
 
-// Middleware - CORS enabled for all origins - Updated
+// Middleware - CORS enabled for all origins
 app.use(cors({
   origin: '*',
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
